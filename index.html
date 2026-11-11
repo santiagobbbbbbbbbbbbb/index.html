@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnimeZone - Portal de Anime y Entretenimiento</title>
+    <style>
+        :root {
+            --bg-dark: #0f0c1b;
+            --card-bg: #1a1528;
+            --purple-main: #6c5ce7;
+            --purple-violet: #a29bfe;
+            --accent-pink: #fd79a8;
+            --text-light: #f1f2f6;
+            --text-muted: #b2bec3;
+            --error-red: #ff7675;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* PANTALLA DE LOGIN (OVERLAY) */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 12, 27, 0.98);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border: 2px solid var(--purple-main);
+            border-radius: 15px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(108, 92, 231, 0.3);
+        }
+
+        .login-card h2 {
+            font-size: 2rem;
+            color: var(--purple-violet);
+            margin-bottom: 8px;
+        }
+
+        .login-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--purple-violet);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--purple-main);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-pink);
+        }
+
+        .login-submit-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 25px;
+            background: var(--purple-main);
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .login-submit-btn:hover {
+            background: #5b4cc4;
+            transform: scale(1.02);
+        }
+
+        .error-message {
+            color: var(--error-red);
+            font-size: 0.85rem;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* CONTENIDO DEL PORTAL (OCULTO HASTA INICIAR SESIÓN) */
+        #portalContent {
+            display: none;
+        }
+
+        /* HEADER & NAVBAR */
+        header {
+            background: rgba(26, 21, 40, 0.95);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid var(--purple-main);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--purple-violet);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo span {
+            color: var(--accent-pink);
+        }
+
+        /* Nav Escritorio */
+        .nav-desktop {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-desktop a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .nav-desktop a:hover {
+            color: var(--purple-violet);
+        }
+
+        .user-badge {
+            background: var(--purple-main);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            color: var(--error-red);
+            border-color: var(--error-red);
+        }
+
+        /* Botón Hamburguesa */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        /* Nav Móvil Desplegable */
+        .nav-mobile {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: var(--card-bg);
+            border-bottom: 2px solid var(--purple-main);
+            flex-direction: column;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.4s ease-out;
+        }
+
+        .nav-mobile.active {
+            display: flex;
+            max-height: 400px;
+        }
+
+        .nav-mobile a, .nav-mobile div {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 15px 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+        }
+
+        .nav-mobile a:hover {
+            background-color: rgba(108, 92, 231, 0.2);
+            color: var(--purple-violet);
+        }
+
+        /* CONTENIDO PRINCIPAL */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* BUSCADOR */
+        .search-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .search-box {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-box input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: 2px solid var(--purple-main);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .search-box button {
+            padding: 12px 25px;
+            border-radius: 25px;
+            border: none;
+            background: var(--purple-main);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* SECCIONES Y TARJETAS */
+        .section-title {
+            font-size: 1.8rem;
+            color: var(--purple-violet);
+            margin-bottom: 20px;
+            border-left: 5px solid var(--purple-main);
+            padding-left: 10px;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--purple-violet);
+            margin-bottom: 10px;
+        }
+
+        .card-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        /* GIF & MEDIA SECTION */
+        .gif-section {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .tenor-embed-container {
+            max-width: 500px;
+            margin: 20px auto;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* FOOTER */
+        footer {
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--purple-main);
+            text-align: center;
+            padding: 25px;
+            margin-top: 50px;
+            color: var(--text-muted);
+        }
+
+        /* RESPONSIVE MEDIA QUERIES */
+        @media (max-width: 768px) {
+            .nav-desktop {
+                display: none;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA DE LOGIN REQUERIDA AL INICIO -->
+    <div id="loginScreen">
+        <div class="login-card">
+            <h2>⚡ AnimeZone</h2>
+            <p>Acceso al Portal Web</p>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="username">Usuario</label>
+                    <input type="text" id="username" placeholder="Ingresa tu usuario" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" placeholder="Ingresa tu contraseña" required>
+                </div>
+                <button type="submit" class="login-submit-btn">Ingresar al Portal</button>
+                <div class="error-message" id="errorMessage">Usuario o contraseña incorrectos.</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ESTRUCTURA DEL PORTAL WEB -->
+    <div id="portalContent">
+        <!-- ENCABEZADO Y MENÚ DE NAVEGACIÓN -->
+        <header>
+            <a href="#inicio" class="logo">⚡ Anime<span>Zone</span></a>
+
+            <!-- Menú Escritorio -->
+            <nav class="nav-desktop">
+                <a href="#inicio">Inicio</a>
+                <a href="#animes">Animes</a>
+                <a href="#generos">Géneros</a>
+                <a href="#videos">Videos</a>
+                <a href="#contacto">Contacto</a>
+                <span class="user-badge" id="userDisplay">👤 Usuario</span>
+                <button class="logout-btn" id="logoutBtn">Salir</button>
+            </nav>
+
+            <!-- Botón Hamburguesa Móvil -->
+            <button class="menu-toggle" id="menuBtn" aria-label="Abrir menú">☰</button>
+
+            <!-- Menú Desplegable Móvil -->
+            <nav class="nav-mobile" id="mobileMenu">
+                <a href="#inicio" class="mobile-link">Inicio</a>
+                <a href="#animes" class="mobile-link">Animes</a>
+                <a href="#generos" class="mobile-link">Géneros</a>
+                <a href="#videos" class="mobile-link">Videos</a>
+                <a href="#contacto" class="mobile-link">Contacto</a>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span id="userDisplayMobile">👤 Usuario</span>
+                    <button class="logout-btn" id="logoutBtnMobile">Salir</button>
+                </div>
+            </nav>
+        </header>
+
+        <div class="container" id="inicio">
+            <!-- BUSCADOR DEL PORTAL -->
+            <section class="search-section">
+                <h2>Encuentra tus Animes y Recursos Favoritos</h2>
+                <div class="search-box">
+                    <input type="text" placeholder="Buscar por título, personaje o género...">
+                    <button>Buscar</button>
+                </div>
+            </section>
+
+            <!-- SECCIÓN ANIMES DESTACADOS -->
+            <section id="animes">
+                <h2 class="section-title">Animes Destacados</h2>
+                <div class="grid-cards">
+                    <article class="card">
+                        <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop" alt="Anime Hero">
+                        <div class="card-content">
+                            <h3 class="card-title">Shingeki no Kyojin</h3>
+                            <p class="card-text">La humanidad lucha por sobrevivir tras murallas gigantes frente a titanes despiadados.</p>
+                            <button class="login-submit-btn" style="padding: 6px 12px; font-size: 0.85rem;">Ver Más</button>
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <img src="https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&auto=format&fit=crop" alt="Cyberpunk City">
+                        <div class="card-content">
+                            <h3 class="card-title">Cyberpunk: Edgerunners</h3>
+                            <p class="card-text">Un chico de la calle intenta sobrevivir en una ciudad obsesionada con la tecnología.</p>
+                            <button class="login-submit-btn" style="padding: 6px 12px; font-size: 0.85rem;">Ver Más</button>
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop" alt="Fantasy Magic">
+                        <div class="card-content">
+                            <h3 class="card-title">Demon Slayer</h3>
+                            <p class="card-text">Tanjiro busca sanar a su hermana y vengar a su familia luchando contra demonios.</p>
+                            <button class="login-submit-btn" style="padding: 6px 12px; font-size: 0.85rem;">Ver Más</button>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- GIF DEL MES (TENOR) -->
+            <section class="gif-section">
+                <h2 class="section-title">🔥 GIF del Mes</h2>
+                <div class="tenor-embed-container">
+                    <div class="tenor-gif-embed" data-postid="23136208" data-share-method="host" data-aspect-ratio="1.77778" data-width="100%"></div>
+                    <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
+                </div>
+            </section>
+
+            <!-- SECCIÓN GÉNEROS Y RECURSOS -->
+            <section id="generos">
+                <h2 class="section-title">Categorías y Recursos</h2>
+                <div class="grid-cards">
+                    <div class="card" style="padding: 20px; text-align: center;">
+                        <h3>⚔️ Shonen</h3>
+                        <p class="card-text">Acción, aventuras y peleas épicas.</p>
+                    </div>
+                    <div class="card" style="padding: 20px; text-align: center;">
+                        <h3>🪄 Isekai</h3>
+                        <p class="card-text">Viajes a mundos fantásticos e increíbles.</p>
+                    </div>
+                    <div class="card" style="padding: 20px; text-align: center;">
+                        <h3>👻 Seinen</h3>
+                        <p class="card-text">Historias maduras, complejas e intensas.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- PIE DE PÁGINA -->
+        <footer id="contacto">
+            <p>&copy; 2026 AnimeZone - Portal Web de Anime y Entretenimiento.</p>
+            <p style="font-size: 0.85rem; margin-top: 5px;">Contacto: soporte@animezone.com</p>
+        </footer>
+    </div>
+
+    <!-- LÓGICA JAVASCRIPT DE AUTENTICACIÓN Y MENÚ -->
+    <script>
+        // Credenciales solicitadas
+        const VALID_USER = "Strelizia";
+        const VALID_PASS = "BVSM1234";
+
+        // Elementos DOM
+        const loginScreen = document.getElementById('loginScreen');
+        const portalContent = document.getElementById('portalContent');
+        const loginForm = document.getElementById('loginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const userDisplay = document.getElementById('userDisplay');
+        const userDisplayMobile = document.getElementById('userDisplayMobile');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const logoutBtnMobile = document.getElementById('logoutBtnMobile');
+
+        // Menú Responsive
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+
+        // Función de inicio de sesión
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userVal = document.getElementById('username').value.trim();
+            const passVal = document.getElementById('password').value.trim();
+
+            if (userVal === VALID_USER && passVal === VALID_PASS) {
+                loginScreen.style.display = 'none';
+                portalContent.style.display = 'block';
+                userDisplay.textContent = `👤 ${userVal}`;
+                userDisplayMobile.textContent = `👤 ${userVal}`;
+                errorMessage.style.display = 'none';
+            } else {
+                errorMessage.style.display = 'block';
+            }
+        });
+
+        // Función de cerrar sesión
+        function logout() {
+            portalContent.style.display = 'none';
+            loginScreen.style.display = 'flex';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            mobileMenu.classList.remove('active');
+        }
+
+        logoutBtn.addEventListener('click', logout);
+        logoutBtnMobile.addEventListener('click', logout);
+
+        // Menú móvil responsive
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+        });
+
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
